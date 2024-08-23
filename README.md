@@ -1,4 +1,8 @@
-# go-menu
+# menu
+
+<p align="center">
+<img src="https://github.com/user-attachments/assets/455c9ec9-0375-40cc-a0ef-b6cfe31776cc" />    
+</p>
 
 A dmenu like tool for the terminal made with [BubbleTea](https://github.com/charmbracelet/bubbletea). You can pass a command to it and it will show you a prompt that continuously calls the command and shows you the output with selectable lines.
 
