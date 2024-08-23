@@ -12,6 +12,8 @@ I really the concept of "command pallets" or "ctrl+p", so I decided to make my o
 
 ## Usage
 
+This is how to currently get and build the tool
+
 ```bash
 git clone https://github.com/aziis98/menu
 cd menu
@@ -19,8 +21,39 @@ go build -v -o ./bin/menu .
 cp ./bin/menu ~/.local/bin
 ```
 
+And here is an example
+
 ```bash
 menu -s -c 'ls -1 | menu search $prompt'
+```
+
+For completion this is the help message
+
+```
+Usage:
+  menu [OPTIONS] COMMAND
+  menu search QUERY
+
+  This is a simple interactive command line tool that allows you to run a
+  command at every key press. It can be used to create interactive prompts or
+  menus.
+
+  The search subcommand performs a fuzzy search on the stdin lines and prints
+  the results highlighting the matched characters. If no query is provided, it
+  will print all the lines.
+
+Options:
+  -i, --initial string       Initial prompt text
+  -p, --placeholder string   Placeholder text
+  -s, --selection            Only return the selected item
+
+Command:
+  This command will be executed at every key press so mind the performance. It
+  has access to the following environment variables:
+
+    $prompt     the current prompt text
+    $event      the event that triggered the command (open, key, select, close)
+    $selected   the index of the selected item, starting from 1
 ```
 
 ### Commands
