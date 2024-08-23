@@ -1,0 +1,16 @@
+# Local files
+.env
+*.local*
+*.log
+
+# NodeJS
+node_modules/
+
+# Binaries
+bin/
+.out/
+out/
+dist/
+
+# Editors
+.vscode/
