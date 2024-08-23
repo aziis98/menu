@@ -1,4 +1,4 @@
-# Go-Menu
+# go-menu
 
 A dmenu like tool for the terminal made with [BubbleTea](https://github.com/charmbracelet/bubbletea). You can pass a command to it and it will show you a prompt that continuously calls the command and shows you the output with selectable lines.
 
@@ -91,3 +91,11 @@ case $event in
         ;;
 esac
 ```
+
+## ToDo
+
+- Organize the code better.
+
+- Add more examples.
+
+- Choose a better name for the project.
