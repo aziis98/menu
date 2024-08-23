@@ -146,3 +146,5 @@ esac
 - Choose a better name for the project.
 
 - Better help usage message.
+
+- Put on the AUR.
