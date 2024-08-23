@@ -11,8 +11,14 @@ To easily integrate search functionality, there is also a `menu search <query>` 
 ## Usage
 
 ```bash
-$ go build -v -o ./bin/menu .
-$ ./bin/menu -s -c 'ls -1 | ./bin/menu search $prompt'
+git clone https://github.com/aziis98/menu
+cd menu
+go build -v -o ./bin/menu .
+cp ./bin/menu ~/.local/bin
+```
+
+```bash
+menu -s -c 'ls -1 | menu search $prompt'
 ```
 
 ### Commands
@@ -103,3 +109,5 @@ esac
 - Add more examples.
 
 - Choose a better name for the project.
+
+- Better help usage message.
