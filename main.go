@@ -58,7 +58,8 @@ This command will be executed at every key press so mind the performance. It has
 
   $prompt     the current prompt text
   $event      the event that triggered the command (open, key, select, close)
-  $selected   the index of the selected item, starting from 1
+  $sel_line   the selected line
+  $sel_index  the index of the selected item, starting from 1
 `)) + "\n"
 
 func main() {
@@ -255,11 +256,17 @@ type commandCloseMsg struct{}
 
 func (m model) runCommand(event string) tea.Cmd {
 	return func() tea.Msg {
+		selectedLine := ""
+		if m.selected >= 0 && m.selected < len(m.lines) {
+			selectedLine = strings.TrimSpace(m.lines[m.selected])
+		}
+
 		cmd := exec.Command("sh", "-c", strings.Join(
 			[]string{
 				fmt.Sprintf("export prompt=%q", m.input.Value()),
 				fmt.Sprintf("export event=%q", event),
-				fmt.Sprintf("export selected=%d", m.selected+1),
+				fmt.Sprintf("export sel_index=%d", m.selected+1),
+				fmt.Sprintf("export sel_line=%q", selectedLine),
 				command,
 			},
 			";"),
@@ -277,7 +284,6 @@ func (m model) runCommand(event string) tea.Cmd {
 
 			if *selection {
 				lines := splitLinesTerminator(finalOutput)
-				log.Printf("selected: %d, lines: %d", m.selected, len(lines))
 
 				if m.selected >= 0 && m.selected < len(lines) {
 					finalOutput = lines[m.selected]

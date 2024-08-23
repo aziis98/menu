@@ -8,7 +8,7 @@ case $event in
         cat "$TMP_FILE"
         ;;
     "close")
-        cat "$TMP_FILE" | ./bin/menu search "$prompt" 2>/dev/null | sed -n "${selected}p"
+        cat "$TMP_FILE" | ./bin/menu search "$prompt" 2>/dev/null | sed -n "${sel_line}p"
         rm "$TMP_FILE"
         ;;
     *)

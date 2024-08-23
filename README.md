@@ -18,7 +18,7 @@ This is how to currently get and build the tool
 git clone https://github.com/aziis98/menu
 cd menu
 go build -v -o ./bin/menu .
-cp ./bin/menu ~/.local/bin
+cp -f ./bin/menu ~/.local/bin/menu
 ```
 
 And here is an example
@@ -53,7 +53,8 @@ Command:
 
     $prompt     the current prompt text
     $event      the event that triggered the command (open, key, select, close)
-    $selected   the index of the selected item, starting from 1
+    $sel_line   the selected line
+    $sel_index  the index of the selected item, starting from 1
 ```
 
 ### Commands
@@ -66,76 +67,7 @@ Command:
 
 ## Examples
 
-For more examples, check the [examples](./examples) directory.
-
-### Calculator
-
-```bash
-CALC_HISTORY_FILE="$HOME/.cache/calc_history"
-
-case $event in
-    "open")
-        # Create the file if it doesn't exist
-        touch "$CALC_HISTORY_FILE"
-
-        # Remove empty lines
-        sed -i '/^$/d' "$CALC_HISTORY_FILE"
-        
-        # Show the history
-        echo " = "
-        tac "$CALC_HISTORY_FILE"
-        ;;
-    "close")
-        result=$(echo "$prompt" | bc 2>/dev/null)
-        
-        if [ $? -eq 0 ]; then
-            echo "$prompt = $result" >> "$CALC_HISTORY_FILE"
-
-            # Print the selected line
-            tac "$CALC_HISTORY_FILE" | sed -n "${selected}p" | sed 's/^.*=\s*//'
-        else
-            echo "Invalid input"
-        fi
-        ;;
-    *)
-        result=$(echo "$prompt" | bc 2>/dev/null)
-        
-        if [ $? -eq 0 ]; then
-            echo " = $result"
-        else
-            echo "Invalid input"
-        fi
-
-        tac "$CALC_HISTORY_FILE"
-        ;;
-esac
-```
-
-### Fuzzy Search
-
-```bash
-TMP_FILE="/tmp/search.txt"
-
-case $event in
-    "open")
-        find . -type f > "$TMP_FILE"
-        
-        cat "$TMP_FILE"
-        ;;
-    "close")
-        cat "$TMP_FILE" | ./bin/menu search "$prompt" | sed -n "${selected}p"
-        
-        rm "$TMP_FILE"
-        ;;
-    *)
-        cat "$TMP_FILE" | ./bin/menu search "$prompt"
-        
-        if [ $? -ne 0 ]; then
-            echo "No match found"
-        fi
-        ;;
-esac
-```
+For more examples, check the [examples](./examples) directory, for now there is a simple calculator and a search example.
 
 ## ToDo
 
