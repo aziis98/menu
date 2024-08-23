@@ -15,10 +15,15 @@ I really the concept of "command pallets" or "ctrl+p", so I decided to make my o
 This is how to currently get and build the tool
 
 ```bash
-git clone https://github.com/aziis98/menu
-cd menu
-go build -v -o ./bin/menu .
-cp -f ./bin/menu ~/.local/bin/menu
+$ git clone https://github.com/aziis98/menu
+$ cd menu
+$ go build -v -o ./bin/menu .
+
+# Copy the binary to your path
+$ cp -f ./bin/menu ~/.local/bin/menu
+
+# Or symlink it
+$ ln -sfr ./bin/menu ~/.local/bin/menu
 ```
 
 And here is an example
