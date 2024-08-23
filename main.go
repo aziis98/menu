@@ -42,17 +42,39 @@ type model struct {
 	err error
 }
 
+var usageStyle = lipgloss.NewStyle().Width(80).PaddingLeft(2)
+
+var usageMain = usageStyle.Render(strings.TrimSpace(`
+%[1]s [OPTIONS] COMMAND
+%[1]s search QUERY
+  
+This is a simple interactive command line tool that allows you to run a command at every key press. It can be used to create interactive prompts or menus.
+
+The search subcommand performs a fuzzy search on the stdin lines and prints the results highlighting the matched characters. If no query is provided, it will print all the lines.
+`)) + "\n\n"
+
+var usageCommand = usageStyle.Render(strings.TrimSpace(`
+This command will be executed at every key press so mind the performance. It has access to the following environment variables:
+
+  $prompt     the current prompt text
+  $event      the event that triggered the command (open, key, select, close)
+  $selected   the index of the selected item, starting from 1
+`)) + "\n"
+
 func main() {
 	pflag.CommandLine.Init(os.Args[0], pflag.ContinueOnError)
 	pflag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage:\n")
-		fmt.Fprintf(os.Stderr, "    %s [-c command] [-i initial] [-p placeholder] [-s|--selection]\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "    %s search [query]\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "\n")
+		w := os.Stderr
 
-		fmt.Fprintf(os.Stderr, "Options:\n")
+		fmt.Fprintln(w, "Usage:")
+		fmt.Fprintf(w, usageMain, os.Args[0])
+
+		fmt.Fprintln(w, "Options:")
 		pflag.PrintDefaults()
-		fmt.Fprintf(os.Stderr, "\n")
+		fmt.Fprintln(w)
+
+		fmt.Fprintln(w, "Command:")
+		fmt.Fprintln(w, usageCommand)
 	}
 
 	err := pflag.CommandLine.Parse(os.Args[1:])
