@@ -216,12 +216,6 @@ func (m model) View() string {
 		items := []string{}
 
 		for i, line := range m.lines {
-			// if i == m.selected {
-			// 	items = append(items, fmt.Sprintf("▶ %s\n", line))
-			// } else {
-			// 	items = append(items, fmt.Sprintf("  %s\n", line))
-			// }
-
 			formattedItem := lipgloss.NewStyle().Width(m.w - 10).Render(line)
 			if i == m.selected {
 				formattedItem = lipgloss.JoinHorizontal(lipgloss.Top, "▶ ", formattedItem)
