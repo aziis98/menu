@@ -216,20 +216,27 @@ func (m model) View() string {
 		items := []string{}
 
 		for i, line := range m.lines {
+			// if i == m.selected {
+			// 	items = append(items, fmt.Sprintf("▶ %s\n", line))
+			// } else {
+			// 	items = append(items, fmt.Sprintf("  %s\n", line))
+			// }
+
+			formattedItem := lipgloss.NewStyle().Width(m.w - 10).Render(line)
 			if i == m.selected {
-				items = append(items,
-					"▶ "+line,
-				)
+				formattedItem = lipgloss.JoinHorizontal(lipgloss.Top, "▶ ", formattedItem)
 			} else {
-				items = append(items, "  "+line)
+				formattedItem = lipgloss.JoinHorizontal(lipgloss.Top, "  ", formattedItem)
 			}
+
+			items = append(items, formattedItem)
 		}
 
 		if len(items) > m.h-5 {
 			items = items[:m.h-5]
 		}
 
-		content = strings.Join(items, "\n")
+		content = lipgloss.JoinVertical(lipgloss.Left, items...)
 	}
 
 	v.WriteString(
@@ -237,9 +244,10 @@ func (m model) View() string {
 			Padding(0, 1).
 			Render(
 				lipgloss.NewStyle().
+					Width(m.w-4).
+					Height(m.h-3).
+					MaxHeight(m.h-3).
 					Padding(0, 1).
-					Width(m.w - 4).
-					Height(m.h - 5).
 					Border(lipgloss.RoundedBorder()).
 					Render(content),
 			),
