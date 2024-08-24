@@ -76,8 +76,9 @@ def on_open(*_, **__):
 def on_draw(apps, prompt, *_, **__):
     lines = []
 
-    lines.append("0. Exit")
     for app in apps:
+        # Icons do not render correctly in the menu and are very slow
+
         # icon = icon_imgcat(app["icon"]) if "icon" in app else "   "
         # lines.append(f"{icon} {app["name"]} | {app["description"]} | {app['id']}")
 
@@ -91,16 +92,12 @@ def on_draw(apps, prompt, *_, **__):
 
 
 def on_close(apps, sel_line, *_, **__):
-    if sel_line == "0. Exit":
-        print("Bye!")
-        exit()
-    else:
-        sel_id = sel_line.split(" | ")[-1]
-        apps_by_id = {app["id"]: app for app in apps}
-        sel_app = apps_by_id.get(sel_id)
+    sel_id = sel_line.split(" | ")[-1]
+    apps_by_id = {app["id"]: app for app in apps}
+    sel_app = apps_by_id.get(sel_id)
 
-        run(["gio", "launch", sel_app["filename"]])
-        exit()
+    run(["gio", "launch", sel_app["filename"]])
+    exit()
 
 
 handlers = {"open": on_open, "close": on_close}

@@ -217,6 +217,7 @@ func (m model) View() string {
 
 		for i, line := range m.lines {
 			formattedItem := lipgloss.NewStyle().Width(m.w - 10).Render(line)
+
 			if i == m.selected {
 				formattedItem = lipgloss.JoinHorizontal(lipgloss.Top, "▶ ", formattedItem)
 			} else {
@@ -226,11 +227,16 @@ func (m model) View() string {
 			items = append(items, formattedItem)
 		}
 
-		if len(items) > m.h-5 {
-			items = items[:m.h-5]
+		content = lipgloss.JoinVertical(lipgloss.Left, items...)
+
+		// only show lines that fit in the screen
+		maxHeight := m.h - 5
+		if strings.Count(content, "\n") > maxHeight {
+			contentLines := strings.Split(content, "\n")
+			content = strings.Join(contentLines[:maxHeight], "\n")
 		}
 
-		content = lipgloss.JoinVertical(lipgloss.Left, items...)
+		content = strings.TrimRight(content, "\n ")
 	}
 
 	v.WriteString(
@@ -239,8 +245,7 @@ func (m model) View() string {
 			Render(
 				lipgloss.NewStyle().
 					Width(m.w-4).
-					Height(m.h-3).
-					MaxHeight(m.h-3).
+					Height(m.h-5).
 					Padding(0, 1).
 					Border(lipgloss.RoundedBorder()).
 					Render(content),
@@ -302,10 +307,16 @@ func (m model) runCommand(event string) tea.Cmd {
 }
 
 func splitLinesTerminator(s string) []string {
+	// s = strings.ReplaceAll(s, "\n", "\n~")
+
 	lines := strings.Split(s, "\n")
 	if len(lines) > 0 && lines[len(lines)-1] == "" {
 		lines = lines[:len(lines)-1]
 	}
+
+	// for i, line := range lines {
+	// 	lines[i] = strings.ReplaceAll(line, " ", "·")
+	// }
 
 	return lines
 }
