@@ -8,7 +8,7 @@ A dmenu like tool for the terminal made with [BubbleTea](https://github.com/char
 
 To easily integrate search functionality, there is also a `menu search <query>` subcommand that uses a [fuzzy search](https://github.com/sahilm/fuzzy) algorithm to filter stdin lines.
 
-I really the concept of "command pallets" or "ctrl+p", so I decided to make my own. Rofi is great but is somewhat limited (it is specifically a program launcher with extra features). So I wanted to make something more generic and composable that I could easily integrate with other stuff using shell scripts. (There is also the preview feature of fzf but didn't exactly fit my needs).
+I really the concept of "command pallets" or "<kbd>Ctrl</kbd> + <kbd>P</kbd>" shortcut, so I decided to make my own generic tool for making multiple of this. Rofi is great but is somewhat limited (it is specifically a program launcher with extra features). So I wanted to make something more modular and composable that I could easily integrate with other stuff using shell scripts. (There is also the preview feature of fzf but even that didn't exactly fit my needs).
 
 ## Usage
 
@@ -64,11 +64,11 @@ Command:
 
 ### Commands
 
-- `Enter`: Confirm selection and close the tool.
+- <kbd>Enter</kbd>: Confirm selection and close the tool.
 
-- `Up/Down Arrow`: Navigate through the command output.
+- <kbd>Up Arrow</kbd> / <kbd>Down Arrow</kbd>: Navigate through the command output.
 
-- `Ctrl+C/Esc`: Quit the application without making a selection.
+- <kbd>Ctrl</kbd> + <kbd>C</kbd> / <kbd>Esc</kbd>: Quit the application without making a selection.
 
 ## Examples
 
