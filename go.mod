@@ -1,4 +1,4 @@
-module github.com/aziis98/go-menu
+module github.com/aziis98/menu
 
 go 1.23.0
 
