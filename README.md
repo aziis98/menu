@@ -1,7 +1,7 @@
 # menu
 
 <p align="center">
-<img width="720" src="https://github.com/user-attachments/assets/d1a7021d-bb5f-4476-b20b-aca3567ead89" />    
+<img width="720" src="assets/screenshot-2026-07.png" />    
 </p>
 
 A dmenu like tool for the terminal made with [BubbleTea](https://github.com/charmbracelet/bubbletea). You can pass a command to it and it will show you a prompt that continuously calls the command and shows you the output with selectable lines.
