@@ -4,9 +4,6 @@ import (
 	"slices"
 	"strings"
 	"testing"
-
-	"github.com/charmbracelet/lipgloss"
-	"github.com/muesli/termenv"
 )
 
 func TestFilter(t *testing.T) {
@@ -36,8 +33,6 @@ func TestFilter(t *testing.T) {
 }
 
 func TestFilterHighlight(t *testing.T) {
-	lipgloss.SetColorProfile(termenv.TrueColor)
-
 	got, err := filter([]byte("golang\n"), "go", true)
 	if err != nil {
 		t.Fatal(err)

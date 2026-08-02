@@ -8,17 +8,14 @@ import (
 	"strings"
 
 	"github.com/mattn/go-isatty"
-	"github.com/muesli/termenv"
 
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/lipgloss/v2"
 	"github.com/sahilm/fuzzy"
 )
 
 var highlightedStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("9"))
 
 func search(query string) error {
-	lipgloss.SetColorProfile(termenv.TrueColor)
-
 	data, err := io.ReadAll(os.Stdin)
 	if err != nil {
 		return err

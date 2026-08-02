@@ -6,10 +6,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/textinput"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/textinput"
+	"charm.land/lipgloss/v2"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/spf13/pflag"
 )
 
@@ -101,7 +101,7 @@ func main() {
 	m.input.Placeholder = *placeholder
 	m.input.Focus()
 
-	p := tea.NewProgram(m, tea.WithAltScreen())
+	p := tea.NewProgram(m)
 
 	final, err := p.Run()
 	if err != nil {
@@ -128,8 +128,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.Type {
+	case tea.KeyPressMsg:
+		switch msg.Code {
 
 		case tea.KeyUp:
 			m.selected = max(0, m.selected-1)
@@ -145,10 +145,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.seq++
 			return m, m.runCommand("close", m.seq)
 
-		case tea.KeyCtrlC, tea.KeyEsc:
+		case tea.KeyEsc:
 			return m, tea.Quit
 
 		default:
+			if msg.String() == "ctrl+c" {
+				return m, tea.Quit
+			}
+
 			m.input, _ = m.input.Update(msg)
 			m.seq++
 			return m, m.debounce("key", m.seq)
@@ -199,7 +203,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m model) View() string {
+func (m model) View() tea.View {
 	v := strings.Builder{}
 
 	v.WriteString(
@@ -262,5 +266,8 @@ func (m model) View() string {
 			),
 	)
 
-	return v.String()
+	view := tea.NewView(v.String())
+	view.AltScreen = true
+
+	return view
 }
