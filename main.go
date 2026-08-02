@@ -204,20 +204,14 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() tea.View {
-	v := strings.Builder{}
-
-	v.WriteString(
-		lipgloss.NewStyle().
-			Width(max(2, m.w-2)).
-			Height(1).
-			Padding(0, 1).
-			Border(lipgloss.RoundedBorder()).
-			Render(
-				m.input.View(),
-			),
-	)
-
-	v.WriteString("\n")
+	inputBox := lipgloss.NewStyle().
+		Width(max(2, m.w)).
+		Height(1).
+		Padding(0, 1).
+		Border(lipgloss.RoundedBorder()).
+		Render(
+			m.input.View(),
+		)
 
 	content := ""
 
@@ -227,15 +221,15 @@ func (m model) View() tea.View {
 		content = "No output"
 	} else {
 		items := []string{}
-		itemWidth := max(2, m.w-10)
+		itemWidth := max(2, m.w-7)
 
 		for i, line := range m.lines {
 			formattedItem := lipgloss.NewStyle().Width(itemWidth).Render(line)
 
 			if i == m.selected {
-				formattedItem = lipgloss.JoinHorizontal(lipgloss.Top, "▶ ", formattedItem)
+				formattedItem = lipgloss.JoinHorizontal(lipgloss.Top, "▶  ", formattedItem)
 			} else {
-				formattedItem = lipgloss.JoinHorizontal(lipgloss.Top, "  ", formattedItem)
+				formattedItem = lipgloss.JoinHorizontal(lipgloss.Top, "   ", formattedItem)
 			}
 
 			items = append(items, formattedItem)
@@ -244,7 +238,7 @@ func (m model) View() tea.View {
 		content = lipgloss.JoinVertical(lipgloss.Left, items...)
 
 		// only show lines that fit in the screen
-		maxHeight := max(0, m.h-5)
+		maxHeight := max(0, m.h-4)
 		if strings.Count(content, "\n") > maxHeight {
 			contentLines := strings.Split(content, "\n")
 			content = strings.Join(contentLines[:maxHeight], "\n")
@@ -253,18 +247,28 @@ func (m model) View() tea.View {
 		content = strings.TrimRight(content, "\n ")
 	}
 
-	v.WriteString(
-		lipgloss.NewStyle().
-			Padding(0, 1).
-			Render(
-				lipgloss.NewStyle().
-					Width(max(2, m.w-4)).
-					Height(max(0, m.h-5)).
-					Padding(0, 1).
-					Border(lipgloss.RoundedBorder()).
-					Render(content),
-			),
-	)
+	resultsBox := lipgloss.NewStyle().
+		Padding(0, 2).
+		Render(
+			lipgloss.NewStyle().
+				Width(max(2, m.w-4)).
+				Height(max(0, m.h-3)).
+				Padding(0, 1).
+				Border(lipgloss.RoundedBorder(), false, true, true, true).
+				Render(content),
+		)
+
+	inputLines := strings.Split(inputBox, "\n")
+	bottom := []rune(inputLines[len(inputLines)-1])
+	bottom[2] = '┬'
+	bottom[len(bottom)-3] = '┬'
+	inputLines[len(inputLines)-1] = string(bottom)
+	inputBox = strings.Join(inputLines, "\n")
+
+	v := strings.Builder{}
+	v.WriteString(inputBox)
+	v.WriteString("\n")
+	v.WriteString(resultsBox)
 
 	view := tea.NewView(v.String())
 	view.AltScreen = true
