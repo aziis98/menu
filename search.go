@@ -7,8 +7,10 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/charmbracelet/lipgloss"
+	"github.com/mattn/go-isatty"
 	"github.com/muesli/termenv"
+
+	"github.com/charmbracelet/lipgloss"
 	"github.com/sahilm/fuzzy"
 )
 
@@ -22,32 +24,45 @@ func search(query string) error {
 		return err
 	}
 
+	lines, err := filter(data, query, isatty.IsTerminal(os.Stdout.Fd()))
+	if err != nil {
+		return err
+	}
+
+	for _, line := range lines {
+		fmt.Println(line)
+	}
+
+	return nil
+}
+
+func filter(data []byte, query string, highlight bool) ([]string, error) {
 	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
 
 	if query == "" {
-		for _, line := range lines {
-			fmt.Println(line)
-		}
-
-		return nil
+		return lines, nil
 	}
 
 	matches := fuzzy.Find(query, lines)
 	if len(matches) == 0 {
-		return fmt.Errorf("no matches found for query: %s", query)
+		return nil, fmt.Errorf("no matches found for query: %s", query)
 	}
 
+	out := make([]string, 0, len(matches))
+
 	for _, match := range matches {
+		var b strings.Builder
+
 		for i := 0; i < len(match.Str); i++ {
-			if slices.Contains(match.MatchedIndexes, i) {
-				fmt.Print(highlightedStyle.Render(string(match.Str[i])))
+			if highlight && slices.Contains(match.MatchedIndexes, i) {
+				b.WriteString(highlightedStyle.Render(string(match.Str[i])))
 			} else {
-				fmt.Print(string(match.Str[i]))
+				b.WriteString(string(match.Str[i]))
 			}
 		}
 
-		fmt.Println()
+		out = append(out, b.String())
 	}
 
-	return nil
+	return out, nil
 }

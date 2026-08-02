@@ -11,6 +11,7 @@ bin/
 .out/
 out/
 dist/
+/menu
 
 # Editors
 .vscode/

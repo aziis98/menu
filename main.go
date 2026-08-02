@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"os/exec"
 	"strings"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -14,21 +13,8 @@ import (
 	"github.com/spf13/pflag"
 )
 
-var (
-	resultErrorStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("1"))
-)
-
-var (
-	command     string
-	finalOutput string
-)
-
-var (
-	initial     = pflag.StringP("initial", "i", "", "Initial prompt text")
-	placeholder = pflag.StringP("placeholder", "p", "", "Placeholder text")
-	selection   = pflag.BoolP("selection", "s", false, "Only return the selected item")
-)
+var resultErrorStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("1"))
 
 type model struct {
 	w, h int
@@ -37,9 +23,14 @@ type model struct {
 
 	selected int
 	lines    []string
-	// list  list.Model
 
 	err error
+
+	// seq tracks the latest issued command. Results (and debounce ticks)
+	// carrying an older seq are stale and get discarded.
+	seq         int
+	command     string
+	finalOutput string
 }
 
 var usageStyle = lipgloss.NewStyle().Width(80).PaddingLeft(2)
@@ -90,19 +81,19 @@ func main() {
 	if pflag.Arg(0) == "search" {
 		if err := search(pflag.Arg(1)); err != nil {
 			log.Fatalf("error searching: %v", err)
-			return
 		}
 
 		return
 	}
 
-	command = pflag.Arg(0)
-	if command == "" {
-		panic("No command provided")
+	m := model{
+		command: pflag.Arg(0),
+		input:   textinput.New(),
+		seq:     1,
 	}
 
-	m := model{
-		input: textinput.New(),
+	if m.command == "" {
+		panic("No command provided")
 	}
 
 	m.input.Prompt = "> "
@@ -112,22 +103,25 @@ func main() {
 
 	p := tea.NewProgram(m, tea.WithAltScreen())
 
-	if _, err := p.Run(); err != nil {
+	final, err := p.Run()
+	if err != nil {
 		fmt.Println("Error running program:", err)
 		os.Exit(1)
 	}
 
-	if finalOutput != "" {
-		if finalOutput[len(finalOutput)-1] == '\n' {
-			finalOutput = finalOutput[:len(finalOutput)-1]
+	mm := final.(model)
+
+	if mm.finalOutput != "" {
+		if mm.finalOutput[len(mm.finalOutput)-1] == '\n' {
+			mm.finalOutput = mm.finalOutput[:len(mm.finalOutput)-1]
 		}
 
-		fmt.Println(finalOutput)
+		fmt.Println(mm.finalOutput)
 	}
 }
 
 func (m model) Init() tea.Cmd {
-	return m.runCommand("open")
+	return m.runCommand("open", 1)
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -139,32 +133,43 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		case tea.KeyUp:
 			m.selected = max(0, m.selected-1)
-
-			return m, m.runCommand("select")
+			m.seq++
+			return m, m.debounce("select", m.seq)
 
 		case tea.KeyDown:
 			m.selected = min(len(m.lines)-1, m.selected+1)
-
-			return m, m.runCommand("select")
+			m.seq++
+			return m, m.debounce("select", m.seq)
 
 		case tea.KeyEnter:
-			return m, m.runCommand("close")
+			m.seq++
+			return m, m.runCommand("close", m.seq)
 
 		case tea.KeyCtrlC, tea.KeyEsc:
 			return m, tea.Quit
 
 		default:
 			m.input, _ = m.input.Update(msg)
-
-			return m, m.runCommand("key")
+			m.seq++
+			return m, m.debounce("key", m.seq)
 		}
 
 	case tea.WindowSizeMsg:
 		m.w, m.h = msg.Width, msg.Height
-		// m.input.Width = m.w
 		return m, nil
 
+	case debounceTickMsg:
+		if msg.seq != m.seq {
+			return m, nil
+		}
+
+		return m, m.runCommand(msg.event, msg.seq)
+
 	case commandOutputMsg:
+		if msg.seq != m.seq {
+			return m, nil
+		}
+
 		m.lines = msg.lines
 		m.err = nil
 
@@ -173,13 +178,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case commandErrorMsg:
+		if msg.seq != m.seq {
+			return m, nil
+		}
+
 		m.lines = nil
 		m.err = msg.err
 		return m, nil
 
 	case commandCloseMsg:
+		m.finalOutput = msg.output
 		return m, tea.Quit
-
 	}
 
 	m.input, cmd = m.input.Update(msg)
@@ -195,7 +204,7 @@ func (m model) View() string {
 
 	v.WriteString(
 		lipgloss.NewStyle().
-			Width(m.w-2).
+			Width(max(2, m.w-2)).
 			Height(1).
 			Padding(0, 1).
 			Border(lipgloss.RoundedBorder()).
@@ -214,9 +223,10 @@ func (m model) View() string {
 		content = "No output"
 	} else {
 		items := []string{}
+		itemWidth := max(2, m.w-10)
 
 		for i, line := range m.lines {
-			formattedItem := lipgloss.NewStyle().Width(m.w - 10).Render(line)
+			formattedItem := lipgloss.NewStyle().Width(itemWidth).Render(line)
 
 			if i == m.selected {
 				formattedItem = lipgloss.JoinHorizontal(lipgloss.Top, "▶ ", formattedItem)
@@ -230,7 +240,7 @@ func (m model) View() string {
 		content = lipgloss.JoinVertical(lipgloss.Left, items...)
 
 		// only show lines that fit in the screen
-		maxHeight := m.h - 5
+		maxHeight := max(0, m.h-5)
 		if strings.Count(content, "\n") > maxHeight {
 			contentLines := strings.Split(content, "\n")
 			content = strings.Join(contentLines[:maxHeight], "\n")
@@ -244,8 +254,8 @@ func (m model) View() string {
 			Padding(0, 1).
 			Render(
 				lipgloss.NewStyle().
-					Width(m.w-4).
-					Height(m.h-5).
+					Width(max(2, m.w-4)).
+					Height(max(0, m.h-5)).
 					Padding(0, 1).
 					Border(lipgloss.RoundedBorder()).
 					Render(content),
@@ -253,70 +263,4 @@ func (m model) View() string {
 	)
 
 	return v.String()
-}
-
-type commandOutputMsg struct{ lines []string }
-
-type commandErrorMsg struct{ err error }
-
-type commandCloseMsg struct{}
-
-func (m model) runCommand(event string) tea.Cmd {
-	return func() tea.Msg {
-		selectedLine := ""
-		if m.selected >= 0 && m.selected < len(m.lines) {
-			selectedLine = strings.TrimSpace(m.lines[m.selected])
-		}
-
-		cmd := exec.Command("sh", "-c", strings.Join(
-			[]string{
-				fmt.Sprintf("export prompt=%q", m.input.Value()),
-				fmt.Sprintf("export event=%q", event),
-				fmt.Sprintf("export sel_index=%d", m.selected+1),
-				fmt.Sprintf("export sel_line=%q", selectedLine),
-				command,
-			},
-			";"),
-		)
-
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			return commandErrorMsg{
-				err: fmt.Errorf("error running command: %w\n%s", err, string(output)),
-			}
-		}
-
-		if event == "close" {
-			finalOutput = string(output)
-
-			if *selection {
-				lines := splitLinesTerminator(finalOutput)
-
-				if m.selected >= 0 && m.selected < len(lines) {
-					finalOutput = lines[m.selected]
-				}
-			}
-
-			return commandCloseMsg{}
-		}
-
-		return commandOutputMsg{
-			lines: splitLinesTerminator(string(output)),
-		}
-	}
-}
-
-func splitLinesTerminator(s string) []string {
-	// s = strings.ReplaceAll(s, "\n", "\n~")
-
-	lines := strings.Split(s, "\n")
-	if len(lines) > 0 && lines[len(lines)-1] == "" {
-		lines = lines[:len(lines)-1]
-	}
-
-	// for i, line := range lines {
-	// 	lines[i] = strings.ReplaceAll(line, " ", "·")
-	// }
-
-	return lines
 }

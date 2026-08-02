@@ -29,7 +29,7 @@ $ ln -sfr ./bin/menu ~/.local/bin/menu
 And here is an example
 
 ```bash
-menu -s -c 'ls -1 | menu search $prompt'
+menu -s 'ls -1 | menu search $prompt'
 ```
 
 For completion this is the help message
@@ -72,7 +72,11 @@ Command:
 
 ## Examples
 
-For more examples, check the [examples](./examples) directory, for now there is a simple calculator and a search example.
+For more examples, check the [examples](./examples) directory, for now there is a simple calculator, a search example, a launcher and a zoxide-based directory picker.
+
+```bash
+menu "$HOME/.local/bin/zoxide-recent.sh"
+```
 
 ## ToDo
 
