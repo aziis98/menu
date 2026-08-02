@@ -13,3 +13,7 @@ To run the examples just call `menu ./examples/<name>.sh` from the root of the r
 - [Launcher](./launcher.py)
 
     A simple launcher that uses `menu` to search for applications and run them. The discovery of applications is done with `Gio` in python.
+
+- [Zoxide Recent](./zoxide-recent.sh)
+
+    A directory picker that uses `zoxide` to list recently visited directories, `fzf` for fuzzy filtering, and `prefixtree` to display the paths as a tree.
